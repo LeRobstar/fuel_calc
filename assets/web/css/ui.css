@@ -1,0 +1,27 @@
+h1 {
+  font-family: "Helvetica Light",Helvetica,"Droid Sans",Arial,Arial Unicode MS,sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  text-align: center;
+  font-size: 7hv;
+  color: #3FA2BF;
+}
+
+body {
+  display: -webkit-box;
+  display: flex;
+
+  -webkit-box-orient: vertical;
+  flex-direction: column;
+
+  padding: 20px;
+  box-sizing: border-box;
+
+  font-size: 5vh;
+}
+
+/* strech body to full display height */
+html, body {
+  height: 100%;
+}
+

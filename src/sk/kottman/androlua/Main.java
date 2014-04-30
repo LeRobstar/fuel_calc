@@ -1,8 +1,6 @@
 package sk.kottman.androlua;
 
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
 
 import org.keplerproject.luajava.JavaFunction;
 import org.keplerproject.luajava.LuaException;
@@ -13,32 +11,17 @@ import android.app.Activity;
 import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.util.*;
-import android.os.Handler;
-import android.text.method.ScrollingMovementMethod;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.View.OnLongClickListener;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
+import android.webkit.WebView;
 
-public class Main extends Activity implements OnClickListener,
-		OnLongClickListener {
-	private final static int LISTEN_PORT = 3333;
+public class Main extends Activity {
 
-	Button execute;
-	
 	// public so we can play with these from Lua
-	public EditText source;
-	public TextView status;
+  public WebView  webview;
 	public LuaState L;
 	
 	final StringBuilder output = new StringBuilder();
 
-	Handler handler;
-	ServerThread serverThread;
-	
 	private static byte[] readAll(InputStream input) throws Exception {
 		ByteArrayOutputStream output = new ByteArrayOutputStream(4096);
 		byte[] buffer = new byte[4096];
@@ -55,17 +38,10 @@ public class Main extends Activity implements OnClickListener,
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 
-		execute = (Button) findViewById(R.id.executeBtn);
-		execute.setOnClickListener(this);
-
-		source = (EditText) findViewById(R.id.source);
-		source.setOnLongClickListener(this);
-		source.setText("require 'import'\nprint(Math:sin(2.3))\n");
-
-		status = (TextView) findViewById(R.id.statusText);
-		status.setMovementMethod(ScrollingMovementMethod.getInstance());
-
-		handler = new Handler();
+    webview = (WebView) findViewById(R.id.webview);
+    webview.clearCache(true);
+    webview.getSettings().setJavaScriptEnabled(true);
+    webview.loadUrl("file:///android_asset/web/main.html");
 
 		L = LuaStateFactory.newLuaState();
 		L.openLibs();
@@ -136,91 +112,19 @@ public class Main extends Activity implements OnClickListener,
 			L.setField(-2, "path");            // package
 			L.pop(1);
 		} catch (Exception e) {
-			status.setText("Cannot override print");
-		}
-	}
-
-	@Override
-	protected void onResume() {
-		super.onResume();
-		serverThread = new ServerThread();
-		serverThread.start();
-	}
-
-	@Override
-	protected void onPause() {
-		super.onPause();
-		serverThread.stopped = true;
-	}
-
-	private class ServerThread extends Thread {
-		public boolean stopped;
-
-		@Override
-		public void run() {
-			stopped = false;
-			try {
-				ServerSocket server = new ServerSocket(LISTEN_PORT);
-				show("Server started on port " + LISTEN_PORT);
-				while (!stopped) {
-					Socket client = server.accept();
-					BufferedReader in = new BufferedReader(
-							new InputStreamReader(client.getInputStream()));
-					final PrintWriter out = new PrintWriter(client.getOutputStream());
-					String line = null;
-					while (!stopped && (line = in.readLine()) != null) {
-						final String s = line.replace('\001', '\n');
-						if (s.startsWith("--mod:")) {
-							int i1 = s.indexOf(':'), i2 = s.indexOf('\n');
-							String mod = s.substring(i1+1,i2); 
-							String file = getFilesDir()+"/"+mod.replace('.', '/')+".lua";
-							FileWriter fw = new FileWriter(file);
-							fw.write(s);
-							fw.close();	
-							// package.loaded[mod] = nil
-							L.getGlobal("package");
-							L.getField(-1, "loaded");
-							L.pushNil();
-							L.setField(-2, mod);
-							out.println("wrote " + file + "\n");
-							out.flush();
-						} else {
-							handler.post(new Runnable() {
-								public void run() {
-									String res = safeEvalLua(s);
-									res = res.replace('\n', '\001');
-									out.println(res);
-									out.flush();
-								}
-							});
-						}
-					}
-				}
-				server.close();
-			} catch (Exception e) {
-				show(e.toString());
-			}
+			//status.setText("Cannot override print");
 		}
 
-		private void show(final String s) {
-			handler.post(new Runnable() {
-				public void run() {
-					status.setText(s);
-				}
-			});
-		}
-	}	
-
-	String safeEvalLua(String src) {
-		String res = null;	
-		try {
-			res = evalLua(src);
-		} catch(LuaException e) {
-			res = e.getMessage()+"\n";
-		}
-		return res;		
+    // run the main script
+    try {
+      String res = evalLua("require 'mainscript'\n");
+      Toast.makeText(this, res, Toast.LENGTH_LONG).show();			
+      Toast.makeText(this, "Finished succesfully", Toast.LENGTH_LONG).show();			
+    } catch(LuaException e) {			
+      Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();			
+    }
 	}
-	
+
 	String evalLua(String src) throws LuaException {
 		L.setTop(0);
 		int ok = L.LloadString(src);
@@ -241,19 +145,6 @@ public class Main extends Activity implements OnClickListener,
 		
 	}
 
-	public void onClick(View view) {
-		String src = source.getText().toString();
-		status.setText("");
-		try {
-			String res = evalLua(src);
-			status.append(res);
-			status.append("Finished succesfully");
-		} catch(LuaException e) {			
-			Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();			
-		}
-
-	}
-
 	private String errorReason(int error) {
 		switch (error) {
 		case 4:
@@ -266,10 +157,5 @@ public class Main extends Activity implements OnClickListener,
 			return "Yield error";
 		}
 		return "Unknown error " + error;
-	}
-
-	public boolean onLongClick(View view) {
-		source.setText("");
-		return true;
 	}
 }
