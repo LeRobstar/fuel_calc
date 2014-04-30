@@ -1,4 +1,4 @@
-package sk.kottman.androlua;
+package com.github.lammermann.androluatemplate;
 
 import java.io.*;
 
