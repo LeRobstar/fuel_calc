@@ -2,6 +2,10 @@ div.service[confirmed="1"] {
   background-color: green;
 }
 
+input {
+  font-size: 2em;
+}
+
 .confirm:hover {
   background-color: gray;
 }
