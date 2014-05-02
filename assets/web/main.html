@@ -2,12 +2,19 @@
 <html lang="de">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Sample</title>
+    <title>Spritkostenrechner</title>
     <link rel="stylesheet" type="text/css" href="css/ui.css" />
     <script type="text/javascript" src="js/jquery-2.1.0.min.js"></script>
+    <script type="text/javascript" src="js/fuel_calc.js"></script>
   </head>
   <body>
-      <h1>Sample html content</h1>
+    <h1>DUCK cALcULATOR</h1>
+    <div>
+      <input id="distance" min="0" value="100" type="number" autofocus></input>
+      <input id="consumption" min="0" value="7" type="number"></input>
+      <input id="price" min="0" value="1.56" type="number"></input>
+      <input id="person_count" min="1" step="1" value="1" type="number"></input>
+    </div>
+    <div id="total_costs"></div>
   </body>
 </html>

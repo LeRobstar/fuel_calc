@@ -1,23 +1,18 @@
+div.service[confirmed="1"] {
+  background-color: green;
+}
+
+.confirm:hover {
+  background-color: gray;
+}
+
 h1 {
   font-family: "Helvetica Light",Helvetica,"Droid Sans",Arial,Arial Unicode MS,sans-serif;
   font-style: normal;
   font-weight: normal;
   text-align: center;
-  font-size: 7hv;
+  font-size: 16px;
   color: #3FA2BF;
-}
-
-body {
-  display: -webkit-box;
-  display: flex;
-
-  -webkit-box-orient: vertical;
-  flex-direction: column;
-
-  padding: 20px;
-  box-sizing: border-box;
-
-  font-size: 5vh;
 }
 
 /* strech body to full display height */
